@@ -1,34 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>V12 股票系統</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>台股戰情室 V13</title>
+<style>
+body{
+  margin:0;
+  background:#080b12;
+  color:#f5f5f5;
+  font-family:Arial,"Noto Sans TC",sans-serif;
+}
+.header{
+  padding:22px;
+  background:#111827;
+  border-bottom:1px solid #263043;
+}
+.title{
+  font-size:28px;
+  font-weight:900;
+  color:#ff4d57;
+}
+.sub{
+  color:#9ca3af;
+  margin-top:6px;
+}
+.container{
+  padding:18px;
+}
+.card{
+  background:#111827;
+  border:1px solid #263043;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.score{
+  font-size:32px;
+  font-weight:900;
+  color:#ff4d57;
+}
+.stock{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.name{
+  font-size:22px;
+  font-weight:800;
+}
+.code{
+  color:#9ca3af;
+  font-size:14px;
+}
+.badge{
+  background:#ff4d57;
+  color:white;
+  padding:6px 10px;
+  border-radius:10px;
+  font-weight:700;
+}
+.btn{
+  width:100%;
+  padding:15px;
+  background:#ff4d57;
+  border:none;
+  color:white;
+  border-radius:14px;
+  font-size:18px;
+  font-weight:800;
+}
+.small{
+  color:#9ca3af;
+  font-size:14px;
+  margin-top:8px;
+}
+.footer{
+  text-align:center;
+  color:#6b7280;
+  font-size:12px;
+  padding:20px;
+}
+</style>
 </head>
 
-<body style="background:black;color:white;font-family:sans-serif">
+<body>
 
-<h2>🚀 V12 股票系統</h2>
+<div class="header">
+  <div class="title">台股戰情室 V13</div>
+  <div class="sub">飆股排行榜・資金強度・決策輔助</div>
+</div>
 
-<button onclick="load()">載入資料</button>
+<div class="container">
 
-<div id="data" style="margin-top:20px;"></div>
+  <button class="btn" onclick="loadStocks()">🚀 更新飆股排行</button>
+
+  <div class="card">
+    <div class="badge">市場模式</div>
+    <h2 id="marketMode">等待資料...</h2>
+    <div class="small">系統依分數判斷目前適合主攻、觀察或防守</div>
+  </div>
+
+  <h2>🔥 今日飆股候選</h2>
+  <div id="stocks"></div>
+
+</div>
+
+<div class="footer">
+  V13 股票系統｜資料來源：你的 Railway API｜僅供輔助決策，不保證獲利
+</div>
 
 <script>
-async function load(){
-  const res = await fetch("https://你的Render網址/top");
-  const data = await res.json();
-  
-  let html = "";
-  data.forEach(stock => {
-    html += `
-      <div style="margin-bottom:10px;">
-        ${stock.code} ${stock.name} 分數:${stock.score}
-      </div>
-    `;
-  });
+const API_BASE = "https://n-5c74.up.railway.app";
 
-  document.getElementById("data").innerHTML = html;
+async function loadStocks(){
+  const box = document.getElementById("stocks");
+  const market = document.getElementById("marketMode");
+
+  box.innerHTML = "<div class='card'>載入中...</div>";
+
+  try{
+    const res = await fetch(API_BASE + "/top");
+    const data = await res.json();
+
+    if(!data || data.length === 0){
+      box.innerHTML = "<div class='card'>目前沒有資料</div>";
+      market.innerText = "防守";
+      return;
+    }
+
+    const avgScore = data.reduce((sum, s) => sum + s.score, 0) / data.length;
+
+    if(avgScore >= 90){
+      market.innerText = "🔥 主攻模式";
+    }else if(avgScore >= 75){
+      market.innerText = "⚠️ 觀察偏多";
+    }else{
+      market.innerText = "🧊 防守模式";
+    }
+
+    box.innerHTML = "";
+
+    data.forEach((s, i) => {
+      let advice = "觀察";
+      if(s.score >= 90) advice = "可列入主攻";
+      else if(s.score >= 80) advice = "強勢觀察";
+      else advice = "保守觀察";
+
+      box.innerHTML += `
+        <div class="card">
+          <div class="stock">
+            <div>
+              <div class="name">${i+1}. ${s.name}</div>
+              <div class="code">${s.code}</div>
+            </div>
+            <div class="score">${s.score}</div>
+          </div>
+          <hr style="border-color:#263043;">
+          <div>建議：<b>${advice}</b></div>
+          <div class="small">買進：回測不破支撐再進｜停損：跌破關鍵低點｜停利：分批出場</div>
+        </div>
+      `;
+    });
+
+  }catch(e){
+    box.innerHTML = "<div class='card'>讀取失敗，請確認 Railway API 是否正常</div>";
+    market.innerText = "資料異常";
+  }
 }
+
+loadStocks();
 </script>
 
 </body>
