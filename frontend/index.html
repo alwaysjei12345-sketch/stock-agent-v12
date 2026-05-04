@@ -1,113 +1,26 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>台股飆股系統</title>
-</head>
-<body>
-  <h1>🔥 台股飆股系統 V13</h1>
-  <div id="app">Loading...</div>
-
-  <script>
-    fetch("https://stock-agent-v12-production-5c74.up.railway.app/top")
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("app").innerHTML =
-          data.map(x => `${x.code} ${x.name} (${x.score})`).join("<br>");
-      })
-      .catch(() => {
-        document.getElementById("app").innerText = "❌ API錯誤";
-      });
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>台股戰情室 V13</title>
 <style>
-body{
-  margin:0;
-  background:#080b12;
-  color:#f5f5f5;
-  font-family:Arial,"Noto Sans TC",sans-serif;
-}
-.header{
-  padding:22px;
-  background:#111827;
-  border-bottom:1px solid #263043;
-}
-.title{
-  font-size:28px;
-  font-weight:900;
-  color:#ff4d57;
-}
-.sub{
-  color:#9ca3af;
-  margin-top:6px;
-}
-.container{
-  padding:18px;
-}
-.card{
-  background:#111827;
-  border:1px solid #263043;
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
-}
-.score{
-  font-size:32px;
-  font-weight:900;
-  color:#ff4d57;
-}
-.stock{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-.name{
-  font-size:22px;
-  font-weight:800;
-}
-.code{
-  color:#9ca3af;
-  font-size:14px;
-}
-.badge{
-  background:#ff4d57;
-  color:white;
-  padding:6px 10px;
-  border-radius:10px;
-  font-weight:700;
-}
-.btn{
-  width:100%;
-  padding:15px;
-  background:#ff4d57;
-  border:none;
-  color:white;
-  border-radius:14px;
-  font-size:18px;
-  font-weight:800;
-}
-.small{
-  color:#9ca3af;
-  font-size:14px;
-  margin-top:8px;
-}
-.footer{
-  text-align:center;
-  color:#6b7280;
-  font-size:12px;
-  padding:20px;
-}
+body{margin:0;background:#080b12;color:#fff;font-family:Arial,"Noto Sans TC",sans-serif}
+.header{padding:22px;background:#111827;border-bottom:1px solid #263043}
+.title{font-size:28px;font-weight:900;color:#ff4d57}
+.sub{color:#9ca3af;margin-top:6px}
+.container{padding:18px}
+.btn{width:100%;padding:15px;background:#ff4d57;border:0;color:white;border-radius:14px;font-size:18px;font-weight:800}
+.card{background:#111827;border:1px solid #263043;border-radius:18px;padding:18px;margin:16px 0}
+.badge{display:inline-block;background:#ff4d57;padding:6px 10px;border-radius:10px;font-weight:800}
+.stock{display:flex;justify-content:space-between;align-items:center}
+.name{font-size:22px;font-weight:900}
+.code{color:#9ca3af;margin-top:4px}
+.score{font-size:34px;font-weight:900;color:#ff4d57}
+.small{color:#9ca3af;font-size:14px;margin-top:10px;line-height:1.6}
+.footer{text-align:center;color:#6b7280;font-size:12px;padding:20px}
 </style>
 </head>
-
 <body>
 
 <div class="header">
@@ -116,62 +29,46 @@ body{
 </div>
 
 <div class="container">
-
   <button class="btn" onclick="loadStocks()">🚀 更新飆股排行</button>
 
   <div class="card">
-    <div class="badge">市場模式</div>
+    <span class="badge">市場模式</span>
     <h2 id="marketMode">等待資料...</h2>
-    <div class="small">系統依分數判斷目前適合主攻、觀察或防守</div>
+    <div class="small">依平均分數判斷目前偏主攻、觀察或防守。</div>
   </div>
 
   <h2>🔥 今日飆股候選</h2>
-  <div id="stocks"></div>
-
+  <div id="stocks"><div class="card">載入中...</div></div>
 </div>
 
 <div class="footer">
-  V13 股票系統｜資料來源：你的 Railway API｜僅供輔助決策，不保證獲利
+  V13 股票系統｜僅供輔助決策，不保證獲利
 </div>
 
 <script>
-const API_BASE = "https://n-5c74.up.railway.app";
+const API_URL = "https://stock-agent-v12-production-5c74.up.railway.app/top";
 
 async function loadStocks(){
   const box = document.getElementById("stocks");
   const market = document.getElementById("marketMode");
-
   box.innerHTML = "<div class='card'>載入中...</div>";
 
   try{
-    const res = await fetch(API_BASE + "/top");
+    const res = await fetch(API_URL);
     const data = await res.json();
 
-    if(!data || data.length === 0){
+    if(!Array.isArray(data) || data.length === 0){
       box.innerHTML = "<div class='card'>目前沒有資料</div>";
       market.innerText = "防守";
       return;
     }
 
-    const avgScore = data.reduce((sum, s) => sum + s.score, 0) / data.length;
+    const avg = data.reduce((s,x)=>s+x.score,0)/data.length;
+    market.innerText = avg >= 90 ? "🔥 主攻模式" : avg >= 75 ? "⚠️ 觀察偏多" : "🧊 防守模式";
 
-    if(avgScore >= 90){
-      market.innerText = "🔥 主攻模式";
-    }else if(avgScore >= 75){
-      market.innerText = "⚠️ 觀察偏多";
-    }else{
-      market.innerText = "🧊 防守模式";
-    }
-
-    box.innerHTML = "";
-
-    data.forEach((s, i) => {
-      let advice = "觀察";
-      if(s.score >= 90) advice = "可列入主攻";
-      else if(s.score >= 80) advice = "強勢觀察";
-      else advice = "保守觀察";
-
-      box.innerHTML += `
+    box.innerHTML = data.map((s,i)=>{
+      let advice = s.score >= 90 ? "可列入主攻" : s.score >= 80 ? "強勢觀察" : "保守觀察";
+      return `
         <div class="card">
           <div class="stock">
             <div>
@@ -180,15 +77,18 @@ async function loadStocks(){
             </div>
             <div class="score">${s.score}</div>
           </div>
-          <hr style="border-color:#263043;">
-          <div>建議：<b>${advice}</b></div>
-          <div class="small">買進：回測不破支撐再進｜停損：跌破關鍵低點｜停利：分批出場</div>
+          <div class="small">
+            建議：<b>${advice}</b><br>
+            買進：回測不破支撐再進<br>
+            停損：跌破關鍵低點<br>
+            停利：分批出場
+          </div>
         </div>
       `;
-    });
+    }).join("");
 
   }catch(e){
-    box.innerHTML = "<div class='card'>讀取失敗，請確認 Railway API 是否正常</div>";
+    box.innerHTML = "<div class='card'>❌ 讀取失敗，請確認 Railway API 是否正常</div>";
     market.innerText = "資料異常";
   }
 }
