@@ -1,4 +1,27 @@
 <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>台股飆股系統</title>
+</head>
+<body>
+  <h1>🔥 台股飆股系統 V13</h1>
+  <div id="app">Loading...</div>
+
+  <script>
+    fetch("https://stock-agent-v12-production-5c74.up.railway.app/top")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("app").innerHTML =
+          data.map(x => `${x.code} ${x.name} (${x.score})`).join("<br>");
+      })
+      .catch(() => {
+        document.getElementById("app").innerText = "❌ API錯誤";
+      });
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
