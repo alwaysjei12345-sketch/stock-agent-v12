@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>V12 股票系統</title>
+</head>
+
+<body style="background:black;color:white;font-family:sans-serif">
+
+<h2>🚀 V12 股票系統</h2>
+
+<button onclick="load()">載入資料</button>
+
+<div id="data" style="margin-top:20px;"></div>
+
+<script>
+async function load(){
+  const res = await fetch("https://你的Render網址/top");
+  const data = await res.json();
+  
+  let html = "";
+  data.forEach(stock => {
+    html += `
+      <div style="margin-bottom:10px;">
+        ${stock.code} ${stock.name} 分數:${stock.score}
+      </div>
+    `;
+  });
+
+  document.getElementById("data").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
